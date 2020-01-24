@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29709.97
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TreeStar", "TreeStar\TreeStar.csproj", "{DAE7CA0B-EFED-48B2-81E2-7892462C6A07}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DAE7CA0B-EFED-48B2-81E2-7892462C6A07}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DAE7CA0B-EFED-48B2-81E2-7892462C6A07}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DAE7CA0B-EFED-48B2-81E2-7892462C6A07}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DAE7CA0B-EFED-48B2-81E2-7892462C6A07}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {8CDC63C5-2F41-4B4F-825F-FBF9DD6E77C5}
+	EndGlobalSection
+EndGlobal
