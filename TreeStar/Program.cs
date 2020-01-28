@@ -145,6 +145,21 @@ namespace TreeStar
                     Convert.ToSingle(z));
             }
 
+            public StarID(int spot, double x, double y, double z)
+            {
+                Spot = spot;
+                XYZ = new Vector3(
+                    Convert.ToSingle(x),
+                    Convert.ToSingle(y),
+                    Convert.ToSingle(z));
+            }
+
+            public StarID(int spot, Vector3 xyz)
+            {
+                Spot = spot;
+                XYZ = xyz;
+            }
+
             public int Votes { get; set; }
             public int Spot { get; set; }
 
@@ -166,6 +181,7 @@ namespace TreeStar
             double FOV=20;
 
             List<Star>CatalogStar= CreateCatalogTriad(Mg, FileCatalog, separator);      // загружаем каталог звёзд с определёнными зв.величинами
+            List<Triangles>featurelist2=Triad_Feature_Extract(Mg,FOV,CatalogStar);      //
         }
 
         /// <summary>
@@ -175,7 +191,7 @@ namespace TreeStar
         public static List<Star> CreateCatalogTriad(double Mg, string datacatalog, Char separator)
         {
             List<Star> CatalogStar = new List<Star>();
-            CatalogStar.Add(new Star(-1, -1, -1, -1));  // заглушка, чтоб всё было с еденицы
+            CatalogStar.Add(new Star(-1, -1, -1, -1));  // заглушка, чтоб всё было с единицы
 
             using(StreamReader sr = new StreamReader(datacatalog, System.Text.Encoding.Default))
             {
@@ -203,6 +219,11 @@ namespace TreeStar
             return CatalogStar;
         }
 
+        /// <summary>
+        /// Функция С.Братта для создания каталога триадных признаков на основе вычисленной звездной
+        /// величины отсечки.Создает список углов точечного произведения между звезда и следующие
+        /// две самые близкие звезды.Также находит интерьер точечного угла между этими тремя звездами.
+        /// </summary>
         public static List<Triangles> Triad_Feature_Extract(double Mg, double FOV, List<Star> catalog)
         {
             List<Triangles> feat=new List<Triangles>();
@@ -294,6 +315,108 @@ namespace TreeStar
 
             Console.WriteLine("Треугольники сформированы");
             return feat;
+        }
+
+        /// <summary>
+        /// Аналог функции norm из MatLab
+        /// </summary>
+        private static double Vector3Norm(Vector3 v)
+        {
+            return Math.Sqrt(Math.Pow(v.X, 2) + Math.Pow(v.Y, 2) + Math.Pow(v.Z, 2));
+        }
+
+        public static List<Pattern> getThreeStar_ID(List<Star> catalog, List<Triangles> featurelist2, List<StarID> spotlist, double ecat)
+        {
+            List<Pattern> pattern=new List<Pattern>();
+
+            pattern.Add(new Pattern(-1, -1, -1, -1, -1, -1));   // заплатка, чтоб всё было с единицы
+
+            Vector3 A;
+            Vector3 B;
+            Vector3 C;
+
+            Vector3 Vec1,Vec2;
+
+            int spot1,spot2,spot3;
+            int Spot2, Spot3;
+
+            double theta, theta1,theta2;
+
+            Vector3 New;
+
+            double v1,v2;
+
+            double phi;
+
+            double ang1,ang2;
+
+            for(int j = 1; j <= spotlist.Count; j++)
+            {
+                A = spotlist[j].XYZ;
+                B = C = Vector3.Zero;
+
+                spot1 = spotlist[j].Spot;
+                spot2 = spot3 = 0;
+
+                theta1 = theta2 = 360;
+
+                for(int i = 1; i <= spotlist.Count; i++)
+                {
+                    New = spotlist[i].XYZ;
+                    if(!New.Equals(A))
+                    {
+                        theta = Math.Acos(Vector3.Dot(A, New) / (Vector3Norm(A) * Vector3Norm(New)));
+
+                        if(theta < theta2 && theta > theta1)
+                        {
+                            theta2 = theta;
+                            spot3 = spotlist[i].Spot;
+                            C = New;
+                        }
+                        else if(theta < theta1)
+                        {
+                            theta2 = theta1;
+                            theta1 = theta;
+                            spot3 = spot2;
+                            spot2 = spotlist[i].Spot;
+                            C = B;
+                            B = New;
+                        }
+                    }
+                }
+
+                //ПОЛУЧИТЬ внутренний угол (фи)
+                Vec1 = B - A;
+                Vec2 = C - A;
+
+                v1 = Vec1.Length();
+                v2 = Vec2.Length();
+
+                phi = Math.Acos(Vector3.Dot(Vec1, Vec2) / (v1 * v2));
+
+                if(theta1 > theta2)
+                {
+                    ang1 = theta2;
+                    ang2 = theta1;
+
+                    Spot2 = spot3;
+                    Spot3 = spot2;
+                }
+                else
+                {
+                    ang1 = theta1;
+                    ang2 = theta2;
+
+                    Spot2 = spot2;
+                    Spot3 = spot3;
+                }
+
+                pattern.Add(new Pattern(spot1, Spot2, Spot3, ang1, ang2, phi));
+            }
+
+            // Поиск Список возможностей ПОЛУЧИТЬ совпадения
+
+            return pattern;
         }
     }
 }
