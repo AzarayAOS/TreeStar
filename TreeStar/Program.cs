@@ -221,8 +221,8 @@ namespace TreeStar
 
         /// <summary>
         /// Функция С.Братта для создания каталога триадных признаков на основе вычисленной звездной
-        /// величины отсечки.Создает список углов точечного произведения между звезда и следующие
-        /// две самые близкие звезды.Также находит интерьер точечного угла между этими тремя звездами.
+        /// величины отсечки. Создает список углов точечного произведения между звездой и следующими
+        /// двумя самыми близкими звездами.Также находит интерьер точечного угла между этими тремя звездами.
         /// </summary>
         public static List<Triangles> Triad_Feature_Extract(double Mg, double FOV, List<Star> catalog)
         {
@@ -325,7 +325,7 @@ namespace TreeStar
             return Math.Sqrt(Math.Pow(v.X, 2) + Math.Pow(v.Y, 2) + Math.Pow(v.Z, 2));
         }
 
-        public static List<Pattern> getThreeStar_ID(List<Star> catalog, List<Triangles> featurelist2, List<StarID> spotlist, double ecat)
+        public static List<Pattern> GetThreeStar_ID(List<Star> catalog, List<Triangles> featurelist, List<StarID> spotlist, double ecat)
         {
             List<Pattern> pattern=new List<Pattern>();
 
@@ -415,6 +415,32 @@ namespace TreeStar
             }
 
             // Поиск Список возможностей ПОЛУЧИТЬ совпадения
+
+            List<Pattern> match=new List<Pattern>();
+            match.Add(new Pattern(-1, -1, -1, -1, -1, -1));
+
+            List<double>fAng1=new List<double>();
+            List<double>fAng2=new List<double>();
+            List<double>fAng3=new List<double>();
+
+            for(int i = 0; i < featurelist.Count; i++)
+            {
+                fAng1.Add(featurelist[i].Theta1);
+                fAng2.Add(featurelist[i].Theta2);
+                fAng3.Add(featurelist[i].Phi);
+            }
+
+            for(int i = 1; i < pattern.Count; i++)
+            {
+                double high1=pattern[i].Theta1+ecat;
+                double low1=pattern[i].Theta1-ecat;
+
+                double high2=pattern[i].Theta2+ecat;
+                double low2=pattern[i].Theta2-ecat;
+
+                double high3=pattern[i].Phi+ecat;
+                double low3=pattern[i].Phi-ecat;
+            }
 
             return pattern;
         }
