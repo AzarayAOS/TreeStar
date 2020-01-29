@@ -325,6 +325,15 @@ namespace TreeStar
             return Math.Sqrt(Math.Pow(v.X, 2) + Math.Pow(v.Y, 2) + Math.Pow(v.Z, 2));
         }
 
+        private static int FoundListBoolTrue(List<int> index)
+        {
+            for(int i = 1; i < index.Count; i++)
+                if(index[i] == 1)
+                    return i;
+
+            return -1;
+        }
+
         public static List<Pattern> GetThreeStar_ID(List<Star> catalog, List<Triangles> featurelist, List<StarID> spotlist, double ecat)
         {
             List<Pattern> pattern=new List<Pattern>();
@@ -440,6 +449,147 @@ namespace TreeStar
 
                 double high3=pattern[i].Phi+ecat;
                 double low3=pattern[i].Phi-ecat;
+
+                #region аналог булевских операций из матлаба с массивами
+
+                //fAng1 = [featurelist.feat.theta1];
+                //fAng2 = [featurelist.feat.theta2];
+                //fAng3 = [featurelist.feat.phi];
+                //for i = 1:N
+
+                // high1 = pattern(i).theta1 + ecat;
+                // low1 = pattern(i).theta1 - ecat;
+                // high2 = pattern(i).theta2 + ecat;
+                //low2 = pattern(i).theta2 - ecat;
+                //high3 = pattern(i).phi + ecat;
+                //low3 = pattern(i).phi - ecat;
+                //ind1 = fAng1 <= high1;
+                //ind2 = fAng1 >= low1;
+                //ind3 = fAng2 <= high2;
+                //ind4 = fAng2 >= low2;
+                //ind5 = fAng3 <= high3;
+                //ind6 = fAng3 >= low3;
+
+                // по идее массивы должны быть булевские, но с int потом легче работать
+                List<int>ind1=new List<int>();
+                List<int>ind2=new List<int>();
+                List<int>ind3=new List<int>();
+                List<int>ind4=new List<int>();
+                List<int>ind5=new List<int>();
+                List<int>ind6=new List<int>();
+
+                ind1.Add(0);
+                ind2.Add(0);
+                ind3.Add(0);
+                ind4.Add(0);
+                ind5.Add(0);
+                ind6.Add(0);
+
+                for(int ll = 1; ll < fAng1.Count; ll++)
+                {
+                    ind1.Add(fAng1[ll] <= high1 ? 1 : 0);
+                    ind1.Add(fAng1[ll] <= low1 ? 1 : 0);
+                    ind1.Add(fAng2[ll] <= high2 ? 1 : 0);
+                    ind1.Add(fAng2[ll] <= low2 ? 1 : 0);
+                    ind1.Add(fAng3[ll] <= high3 ? 1 : 0);
+                    ind1.Add(fAng3[ll] <= low3 ? 1 : 0);
+                }
+
+                List<int> index=new List<int>();
+                index.Add(0);
+
+                for(int ll = 1; ll < ind1.Count; ll++)
+                {
+                    index.Add((ind1[ll] + ind2[ll] + ind3[ll] + ind4[ll] + ind5[ll] + ind5[ll]) == 0 ? 0 : 1);
+                }
+
+                #endregion аналог булевских операций из матлаба с массивами
+
+                if(index.Sum() == 0)
+                {
+                    match.Add(new Pattern(-1, -1, -1, -1, -1, -1));
+                }
+                else
+                {
+                    int IndexTrue=FoundListBoolTrue(index);
+                    match.Add(new Pattern(featurelist[IndexTrue].HipID1,
+                                            featurelist[IndexTrue].HipID2,
+                                            featurelist[IndexTrue].HipID3,
+                                            featurelist[IndexTrue].Theta1,
+                                            featurelist[IndexTrue].Theta2,
+                                            featurelist[IndexTrue].Phi));
+                }
+            }
+
+            //Спаривание мест для звезд (мини-голосование)
+
+            List<StarID> starID=new List<StarID>();
+            starID.Add(new StarID(-1, -1, -1, -1, -1, -1));
+
+            List<int> ps1=new List<int>();
+            List<int> ps2=new List<int>();
+            List<int> ps3=new List<int>();
+
+            List<int> ms1=new List<int>();
+            List<int> ms2=new List<int>();
+            List<int> ms3=new List<int>();
+
+            ps1.Add(0);
+            ps2.Add(0);
+            ps3.Add(0);
+
+            ms1.Add(0);
+            ms2.Add(0);
+            ms3.Add(0);
+
+            for(int i = 1; i < pattern.Count; i++)
+            {
+                ps1.Add(pattern[i].Spot1);
+                ps2.Add(pattern[i].Spot2);
+                ps3.Add(pattern[i].Spot3);
+            }
+
+            for(int i = 1; i < match.Count; i++)
+            {
+                ms1.Add(match[i].Spot1);
+                ms2.Add(match[i].Spot2);
+                ms3.Add(match[i].Spot3);
+            }
+
+            for(int i = 1; i < spotlist.Count; i++)
+            {
+                List<int>hip1=new List<int>();
+                List<int>hip2=new List<int>();
+                List<int>hip3=new List<int>();
+                List<int>hip=new List<int>();
+
+                //hip1.Add(-1);
+                //hip2.Add(-1);
+                //hip3.Add(-1);
+
+                for(int j = 1; j < ms1.Count; j++)
+                {
+                    if(ps1[j] == i)
+                    {
+                        hip1.Add(ms1[j]);
+                    }
+
+                    if(ps2[j] == i)
+                    {
+                        hip2.Add(ms2[j]);
+                    }
+
+                    if(ps3[j] == i)
+                    {
+                        hip3.Add(ms3[j]);
+                    }
+                }
+
+                hip.AddRange(hip1);
+                hip.AddRange(hip2);
+                hip.AddRange(hip3);
+
+                hip.RemoveAll(p => p == 0); // удаление всего, что равно 0
             }
 
             return pattern;
