@@ -11,6 +11,52 @@ namespace TreeStar
 {
     internal class Program
     {
+        public class Stats
+        {
+            public Stats()
+            {
+                TrueID =
+                    FalseID =
+                    NeutralID =
+                    Quality =
+                    NoSol =
+                    EmptySol = 0;
+
+                RCvalue =
+                    PercFalse = 0;
+            }
+
+            public int TrueID { get; set; }
+            public int FalseID { get; set; }
+            public int NeutralID { get; set; }
+            public double RCvalue { get; set; }
+            public int Quality { get; set; }
+            public double PercFalse { get; set; }
+            public int NoSol { get; set; }
+            public int EmptySol { get; set; }
+        }
+
+        public class Sky
+        {
+            public Sky(int hipID, Vector3 xYZ)
+            {
+                HipID = hipID;
+                XYZ = xYZ;
+            }
+
+            public Sky(int hipID, double x, double y, double z)
+            {
+                HipID = hipID;
+                XYZ = new Vector3(
+                    Convert.ToSingle(x),
+                    Convert.ToSingle(y),
+                    Convert.ToSingle(z));
+            }
+
+            public int HipID { get; set; }
+            public Vector3 XYZ { get; set; }
+        }
+
         /// <summary>
         /// Класс на одну звезду с его идентификатором и звёздной величиной
         /// </summary>
@@ -171,6 +217,7 @@ namespace TreeStar
         {
             string FileCatalog="";      // путь к файлу каталога
             string FileScreen="";       // путь к файлу с RA и DEC снимка
+            int MRSS=4;                 // Минимально необходимое количество звезд для решения
 
             Char separator = System.Globalization.CultureInfo.CurrentCulture.NumberFormat.CurrencyDecimalSeparator[0];
 
@@ -227,7 +274,7 @@ namespace TreeStar
         public static List<Triangles> Triad_Feature_Extract(double Mg, double FOV, List<Star> catalog)
         {
             List<Triangles> feat=new List<Triangles>();
-            feat.Add(new Triangles(-1, -1, -1, -1, -1, -1));    // заглушка, чтоб начиналос с 1го индекса
+            //feat.Add(new Triangles(-1, -1, -1, -1, -1, -1));    // заглушка, чтоб начиналос с 1го индекса
 
             Vector3 A;
             Vector3 B;
@@ -248,7 +295,7 @@ namespace TreeStar
 
             double ang1,ang2;
 
-            for(int j = 1; j <= catalog.Count; j++)
+            for(int j = 0; j <= catalog.Count; j++)
             {
                 A = catalog[j].GetXYZ();    // Желаемый вектор для сравнения
                 B = C = Vector3.Zero;
@@ -258,7 +305,7 @@ namespace TreeStar
 
                 theta1 = theta2 = 360;
 
-                for(int i = 1; i <= catalog.Count; i++)
+                for(int i = 0; i <= catalog.Count; i++)
                 {
                     //Получить 2й вектор
                     NewXYZ = catalog[i].GetXYZ();
@@ -334,11 +381,11 @@ namespace TreeStar
             return -1;
         }
 
-        public static List<Pattern> GetThreeStar_ID(List<Star> catalog, List<Triangles> featurelist, List<StarID> spotlist, double ecat)
+        public static List<StarID> GetThreeStar_ID(List<Star> catalog, List<Triangles> featurelist, List<StarID> spotlist, double ecat)
         {
             List<Pattern> pattern=new List<Pattern>();
 
-            pattern.Add(new Pattern(-1, -1, -1, -1, -1, -1));   // заплатка, чтоб всё было с единицы
+            //pattern.Add(new Pattern(-1, -1, -1, -1, -1, -1));   // заплатка, чтоб всё было с единицы
 
             Vector3 A;
             Vector3 B;
@@ -359,7 +406,7 @@ namespace TreeStar
 
             double ang1,ang2;
 
-            for(int j = 1; j <= spotlist.Count; j++)
+            for(int j = 0; j <= spotlist.Count; j++)
             {
                 A = spotlist[j].XYZ;
                 B = C = Vector3.Zero;
@@ -369,7 +416,7 @@ namespace TreeStar
 
                 theta1 = theta2 = 360;
 
-                for(int i = 1; i <= spotlist.Count; i++)
+                for(int i = 0; i <= spotlist.Count; i++)
                 {
                     New = spotlist[i].XYZ;
                     if(!New.Equals(A))
@@ -426,7 +473,7 @@ namespace TreeStar
             // Поиск Список возможностей ПОЛУЧИТЬ совпадения
 
             List<Pattern> match=new List<Pattern>();
-            match.Add(new Pattern(-1, -1, -1, -1, -1, -1));
+            //match.Add(new Pattern(-1, -1, -1, -1, -1, -1));
 
             List<double>fAng1=new List<double>();
             List<double>fAng2=new List<double>();
@@ -439,7 +486,7 @@ namespace TreeStar
                 fAng3.Add(featurelist[i].Phi);
             }
 
-            for(int i = 1; i < pattern.Count; i++)
+            for(int i = 0; i < pattern.Count; i++)
             {
                 double high1=pattern[i].Theta1+ecat;
                 double low1=pattern[i].Theta1-ecat;
@@ -478,14 +525,14 @@ namespace TreeStar
                 List<int>ind5=new List<int>();
                 List<int>ind6=new List<int>();
 
-                ind1.Add(0);
-                ind2.Add(0);
-                ind3.Add(0);
-                ind4.Add(0);
-                ind5.Add(0);
-                ind6.Add(0);
+                //ind1.Add(0);
+                //ind2.Add(0);
+                //ind3.Add(0);
+                //ind4.Add(0);
+                //ind5.Add(0);
+                //ind6.Add(0);
 
-                for(int ll = 1; ll < fAng1.Count; ll++)
+                for(int ll = 0; ll < fAng1.Count; ll++)
                 {
                     ind1.Add(fAng1[ll] <= high1 ? 1 : 0);
                     ind1.Add(fAng1[ll] <= low1 ? 1 : 0);
@@ -496,9 +543,9 @@ namespace TreeStar
                 }
 
                 List<int> index=new List<int>();
-                index.Add(0);
+                //index.Add(0);
 
-                for(int ll = 1; ll < ind1.Count; ll++)
+                for(int ll = 0; ll < ind1.Count; ll++)
                 {
                     index.Add((ind1[ll] + ind2[ll] + ind3[ll] + ind4[ll] + ind5[ll] + ind5[ll]) == 0 ? 0 : 1);
                 }
@@ -524,7 +571,7 @@ namespace TreeStar
             //Спаривание мест для звезд (мини-голосование)
 
             List<StarID> starID=new List<StarID>();
-            starID.Add(new StarID(-1, -1, -1, -1, -1, -1));
+            //starID.Add(new StarID(-1, -1, -1, -1, -1, -1));
 
             List<int> ps1=new List<int>();
             List<int> ps2=new List<int>();
@@ -534,29 +581,29 @@ namespace TreeStar
             List<int> ms2=new List<int>();
             List<int> ms3=new List<int>();
 
-            ps1.Add(0);
-            ps2.Add(0);
-            ps3.Add(0);
+            //ps1.Add(0);
+            //ps2.Add(0);
+            //ps3.Add(0);
 
-            ms1.Add(0);
-            ms2.Add(0);
-            ms3.Add(0);
+            //ms1.Add(0);
+            //ms2.Add(0);
+            //ms3.Add(0);
 
-            for(int i = 1; i < pattern.Count; i++)
+            for(int i = 0; i < pattern.Count; i++)
             {
                 ps1.Add(pattern[i].Spot1);
                 ps2.Add(pattern[i].Spot2);
                 ps3.Add(pattern[i].Spot3);
             }
 
-            for(int i = 1; i < match.Count; i++)
+            for(int i = 0; i < match.Count; i++)
             {
                 ms1.Add(match[i].Spot1);
                 ms2.Add(match[i].Spot2);
                 ms3.Add(match[i].Spot3);
             }
 
-            for(int i = 1; i < spotlist.Count; i++)
+            for(int i = 0; i < spotlist.Count; i++)
             {
                 List<int>hip1=new List<int>();
                 List<int>hip2=new List<int>();
@@ -567,7 +614,7 @@ namespace TreeStar
                 //hip2.Add(-1);
                 //hip3.Add(-1);
 
-                for(int j = 1; j < ms1.Count; j++)
+                for(int j = 0; j < ms1.Count; j++)
                 {
                     if(ps1[j] == i)
                     {
@@ -590,9 +637,103 @@ namespace TreeStar
                 hip.AddRange(hip3);
 
                 hip.RemoveAll(p => p == 0); // удаление всего, что равно 0
+
+                List<int>  uhip = hip.AsQueryable().Distinct().ToList();    // удаляем все повторения, делая лист с уникальными значеними
+                List<int> votes=new List<int>();
+
+                int vote;
+                int index;
+
+                if(uhip.Count != 0)
+                {
+                    for(int j = 0; j < uhip.Count; j++)
+                        votes.Add(hip.Where(x => x == uhip[j]).Count());
+
+                    vote = votes.Max();
+                    index = votes.IndexOf(vote);
+                }
+                else
+                {
+                    vote = index = 0;
+                }
+
+                starID.Add(new StarID(vote, i, uhip[index], spotlist[i].XYZ));
             }
 
-            return pattern;
+            return starID;
+        }
+
+        public static void IDAccuracy(List<StarID> starID, List<Sky> sky, int MRSS)
+        {
+            Stats stats=new Stats();
+            List<int>votes=new List<int>();
+            List<double>Hip=new List<double>();
+
+            for(int i = 0; i < starID.Count; i++)
+            {
+                votes.Add(starID[i].Votes);
+                Hip.Add(starID[i].HipID);
+            }
+
+            if(votes.Where(x => x > 0).ToList().Sum() == 0)
+            {
+                stats.TrueID = 0;
+                stats.FalseID = 0;
+                stats.NeutralID = 0;
+                stats.PercFalse = 0;
+                stats.NoSol = 0;
+                stats.EmptySol = 100;
+            }
+            else if(Hip.Sum() != 0)
+            {
+                for(int i = 0; i < starID.Count; i++)
+                {
+                    if(starID[i].HipID == sky[i].HipID)
+                        stats.TrueID++;
+                    else
+                    {
+                        if(starID[i].Votes > 0)
+                            stats.FalseID++;
+                        else if(starID[i].Votes <= 0)
+                            stats.NeutralID++;
+                    }
+
+                    if(i == sky.Count - 1)
+                    {
+                        if(stats.TrueID < MRSS || stats.FalseID > 0)
+                            stats.NoSol = 100;
+                        else
+                            stats.NoSol = 0;
+                    }
+                }
+
+                double diveder=Hip.Where(x=>x!=0).Sum();
+                stats.PercFalse = stats.FalseID / diveder * 100;
+            }
+            else
+            {
+                stats.TrueID = 0;
+                stats.FalseID = 0;
+                stats.NeutralID = 0;
+                stats.PercFalse = 0;
+                stats.NoSol = 0;
+                stats.EmptySol = 100;
+            }
+            // Надежность / Доверие и Качество голосов сумма голосов / максимальное количество
+            // голосов / n истинных звезд = Надежность / Доверие
+
+            List<int>VoiAbs=votes.Take(sky.Count).ToList();
+            for(int ll = 0; ll < VoiAbs.Count; ll++)
+                VoiAbs[ll] = Math.Abs(VoiAbs[ll]);
+
+            int maxabs=VoiAbs.Sum();
+
+            if(maxabs == 0)
+                stats.RCvalue = -1;
+            else
+                stats.RCvalue = votes.Take(sky.Count).ToList().Sum() / (maxabs * sky.Count);
+
+            stats.Quality = votes.Sum();
         }
     }
 }
