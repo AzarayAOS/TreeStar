@@ -11,6 +11,36 @@ namespace TreeStar
 {
     internal class Program
     {
+        public class SpotList
+        {
+            public SpotList(int spot, Vector3 xYZ)
+            {
+                Spot = spot;
+                XYZ = xYZ;
+            }
+
+            public int Spot { get; set; }
+            public Vector3 XYZ { get; set; }
+        }
+
+        public class Matrix
+        {
+            public Matrix(int voites, int spot, double hipID, int trueH, Vector3 xYZ)
+            {
+                Voites = voites;
+                Spot = spot;
+                HipID = hipID;
+                TrueH = trueH;
+                XYZ = xYZ;
+            }
+
+            public int Voites { get; set; }
+            public int Spot { get; set; }
+            public double HipID { get; set; }
+            public int TrueH { get; set; }
+            public Vector3 XYZ { get; set; }
+        }
+
         public class Stats
         {
             public Stats()
@@ -220,15 +250,19 @@ namespace TreeStar
             int MRSS=4;                 // Минимально необходимое количество звезд для решения
 
             Char separator = System.Globalization.CultureInfo.CurrentCulture.NumberFormat.CurrencyDecimalSeparator[0];
-
+            double eps=Math.Pow(10,-3);     // погрешность
             double Ra;
             double Dec;
             double Mg=6;
 
             double FOV=20;
 
+            List<SpotList> spotLists=new List<SpotList>();          // каталог звёзд, положение которых надо найти
+            List<Sky> sky=new List<Sky>();
             List<Star>CatalogStar= CreateCatalogTriad(Mg, FileCatalog, separator);      // загружаем каталог звёзд с определёнными зв.величинами
-            List<Triangles>featurelist2=Triad_Feature_Extract(Mg,FOV,CatalogStar);      //
+            List<Triangles>featurelist2=Triad_Feature_Extract(Mg,FOV,CatalogStar);      // создание списка возможных вариаций
+            List<StarID> starIDs=GetThreeStar_ID(CatalogStar,featurelist2,spotLists,eps);
+            List<Matrix> matrix=IDAccuracy(starIDs,sky,MRSS);
         }
 
         /// <summary>
@@ -381,7 +415,7 @@ namespace TreeStar
             return -1;
         }
 
-        public static List<StarID> GetThreeStar_ID(List<Star> catalog, List<Triangles> featurelist, List<StarID> spotlist, double ecat)
+        public static List<StarID> GetThreeStar_ID(List<Star> catalog, List<Triangles> featurelist, List<SpotList> spotlist, double ecat)
         {
             List<Pattern> pattern=new List<Pattern>();
 
@@ -560,11 +594,11 @@ namespace TreeStar
                 {
                     int IndexTrue=FoundListBoolTrue(index);
                     match.Add(new Pattern(featurelist[IndexTrue].HipID1,
-                                            featurelist[IndexTrue].HipID2,
-                                            featurelist[IndexTrue].HipID3,
-                                            featurelist[IndexTrue].Theta1,
-                                            featurelist[IndexTrue].Theta2,
-                                            featurelist[IndexTrue].Phi));
+                                          featurelist[IndexTrue].HipID2,
+                                              featurelist[IndexTrue].HipID3,
+                                              featurelist[IndexTrue].Theta1,
+                                              featurelist[IndexTrue].Theta2,
+                                              featurelist[IndexTrue].Phi));
                 }
             }
 
@@ -663,7 +697,7 @@ namespace TreeStar
             return starID;
         }
 
-        public static void IDAccuracy(List<StarID> starID, List<Sky> sky, int MRSS)
+        public static List<Matrix> IDAccuracy(List<StarID> starID, List<Sky> sky, int MRSS)
         {
             Stats stats=new Stats();
             List<int>votes=new List<int>();
@@ -734,6 +768,15 @@ namespace TreeStar
                 stats.RCvalue = votes.Take(sky.Count).ToList().Sum() / (maxabs * sky.Count);
 
             stats.Quality = votes.Sum();
+
+            List<Matrix> matrix=new List<Matrix>();
+
+            for(int i = 0; i < starID.Count; i++)
+            {
+                matrix.Add(new Matrix(starID[i].Votes, starID[i].Spot, starID[i].HipID, sky[i].HipID, starID[i].XYZ));
+            }
+
+            return matrix;
         }
     }
 }
