@@ -255,7 +255,7 @@ namespace TreeStar
             int MRSS=5;                 // Минимально необходимое количество звезд для решения
 
             double Mg=7;
-
+            Stats stats=new Stats();
             Char separator = System.Globalization.CultureInfo.CurrentCulture.NumberFormat.CurrencyDecimalSeparator[0];
             double eps=Math.Pow(10,-4);     // погрешность
             double Ra=0;
@@ -284,7 +284,7 @@ namespace TreeStar
             Console.WriteLine("Время выполнения: " + DateTime.Now.Subtract(dateTime).ToString());
 
             Console.Write("IDAccuracy =>   \t\t");
-            List<Matrix> matrix=IDAccuracy(starIDs,sky,MRSS);                               // идентифицируем звёзды
+            List<Matrix> matrix=IDAccuracy(starIDs,sky,MRSS, ref stats);                         // идентифицируем звёзды
             Console.WriteLine("Время выполнения: " + DateTime.Now.Subtract(dateTime).ToString());
             Console.WriteLine();
 
@@ -296,6 +296,9 @@ namespace TreeStar
 
             Console.WriteLine("\n\nRa:  {0,5}\n" +
                               "Dec: {1,5}", Ra, Dec);
+
+            Console.WriteLine();
+            PrintStatisica(stats);
             Console.ReadKey();
         }
 
@@ -323,6 +326,24 @@ namespace TreeStar
             Dec /= n;
         }
 
+        /// <summary>
+        /// Вывод в консоль статистики <paramref name="stats" />
+        /// </summary>
+        public static void PrintStatisica(Stats stats)
+        {
+            Console.WriteLine("{0,9} => {1,4};", "EmptySol", stats.EmptySol);
+            Console.WriteLine("{0,9} => {1,4};", "FalseID", stats.FalseID);
+            Console.WriteLine("{0,9} => {1,4};", "NeutralID", stats.NeutralID);
+            Console.WriteLine("{0,9} => {1,4};", "NoSol", stats.NoSol);
+            Console.WriteLine("{0,9} => {1,4};", "PercFalse", stats.PercFalse);
+            Console.WriteLine("{0,9} => {1,4};", "Quality", stats.Quality);
+            Console.WriteLine("{0,9} => {1,4};", "RCvalue", stats.RCvalue);
+            Console.WriteLine("{0,9} => {1,4};", "TrueID", stats.TrueID);
+        }
+
+        /// <summary>
+        /// Выводит в консоль в виде таблицы данные из <paramref name="matrix" />
+        /// </summary>
         public static void PrintMatrix(List<Matrix> matrix)
         {
             Console.WriteLine("|{0,5}|{1,4}|{2,5}|{3,7}|{4,27}|", "Votes", "Spot", "HipID", "TrueH", "XYZ");
@@ -340,6 +361,9 @@ namespace TreeStar
                     matrix[i].XYZ.ToString());
         }
 
+        /// <summary>
+        /// Отсекает от каталога ненужные данные
+        /// </summary>
         public static List<Sky> ConvertToSky(List<Star> catalog)
         {
             List<Sky> skies=new List<Sky>();
@@ -372,11 +396,7 @@ namespace TreeStar
                     float ra = Convert.ToSingle(ch[1].Replace('.', separator));
                     float dec = Convert.ToSingle(ch[2].Replace('.', separator));
                     float mgt = Convert.ToSingle(ch[3].Replace('.', separator));
-                    //float x = Convert.ToSingle(ch[4].Replace('.', separator));
-                    //float y = Convert.ToSingle(ch[5].Replace('.', separator));
-                    //float z = Convert.ToSingle(ch[6].Replace('.', separator));
 
-                    //CatalogStar.Rows.Add(new Star(id, ra, dec, mgt, x, y, z).GetObj());
                     if(mgt <= Mg)
                         CatalogStar.Add((new Star(id, ra, dec, mgt)));
                 }
@@ -499,6 +519,11 @@ namespace TreeStar
             return -1;
         }
 
+        /// <summary>
+        /// 3-звездочный алгоритм идентификации звезды триады-Лейбе Получает точечные произведения и
+        /// внутренние углы двух ближайших звезд к конкретной звезды.Это ограничено только двумя
+        /// ближайшими звездами рядом с рассматриваемой звездой.
+        /// </summary>
         public static List<StarID> GetThreeStar_ID(List<Star> catalog, List<Triangles> featurelist, List<SpotList> spotlist, double ecat)
         {
             List<Pattern> pattern=new List<Pattern>();
@@ -747,9 +772,11 @@ namespace TreeStar
             return starID;
         }
 
-        public static List<Matrix> IDAccuracy(List<StarID> starID, List<Sky> sky, int MRSS)
+        /// <summary>
+        /// Сопоставление найденных звёзд с каталогом и идентификация со статистикой
+        /// </summary>
+        public static List<Matrix> IDAccuracy(List<StarID> starID, List<Sky> sky, int MRSS, ref Stats stats)
         {
-            Stats stats=new Stats();
             List<int>votes=new List<int>();
             List<double>Hip=new List<double>();
 
@@ -830,6 +857,9 @@ namespace TreeStar
             return matrix;
         }
 
+        /// <summary>
+        /// Чтение данных с файла <paramref name="filedata" /> со зёздами с камеры
+        /// </summary>
         public static List<SpotList> GetSpotList(string filedata, Char separator)
         {
             List<SpotList> spotList = new List<SpotList>();
