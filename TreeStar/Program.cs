@@ -247,32 +247,94 @@ namespace TreeStar
         {
             string FileCatalog="valuesID.csv";      // путь к файлу каталога
             string FileScreen="star.csv";       // путь к файлу с RA и DEC снимка
-            int MRSS=4;                 // Минимально необходимое количество звезд для решения
+            int MRSS=5;                 // Минимально необходимое количество звезд для решения
 
             Char separator = System.Globalization.CultureInfo.CurrentCulture.NumberFormat.CurrencyDecimalSeparator[0];
-            double eps=Math.Pow(10,-3);     // погрешность
-            //double Ra;
-            //double Dec;
+            double eps=Math.Pow(10,-4);     // погрешность
+            double Ra=0;
+            double Dec=0;
             double Mg=7;
 
             double FOV=20;
             DateTime dateTime=DateTime.Now;
-
+            Console.Write("GetSpotList =>   \t\t");
             List<SpotList> spotLists=GetSpotList(FileScreen,separator);          // каталог звёзд, положение которых надо найти
             Console.WriteLine("Время выполнения: " + DateTime.Now.Subtract(dateTime).ToString());
-            List<Sky> sky=new List<Sky>();
-            Console.WriteLine("Время выполнения: " + DateTime.Now.Subtract(dateTime).ToString());
+
+            Console.Write("CreateCatalogTriad =>   \t");
             List<Star>CatalogStar= CreateCatalogTriad(Mg, FileCatalog, separator);          // загружаем каталог звёзд с определёнными зв.величинами
             Console.WriteLine("Время выполнения: " + DateTime.Now.Subtract(dateTime).ToString());
-            List<Triangles>featurelist2=Triad_Feature_Extract(Mg,FOV,CatalogStar);          // создание списка возможных вариаций
-            Console.WriteLine("Время выполнения: " + DateTime.Now.Subtract(dateTime).ToString());
-            List<StarID> starIDs=GetThreeStar_ID(CatalogStar,featurelist2,spotLists,eps);   // сравниваем
-            Console.WriteLine("Время выполнения: " + DateTime.Now.Subtract(dateTime).ToString());
-            List<Matrix> matrix=IDAccuracy(starIDs,sky,MRSS);                               // идентифицируем звёзды
+
+            Console.Write("ConvertToSky =>   \t\t");
+            List<Sky> sky=ConvertToSky(CatalogStar);                // фильтрация каталога от ненужных данных
             Console.WriteLine("Время выполнения: " + DateTime.Now.Subtract(dateTime).ToString());
 
-            Console.WriteLine("Выполнение программы завершено!!!!!!!!!!!!!!!!!!!!!!!!!");
+            Console.Write("Triad_Feature_Extract =>   \t");
+            List<Triangles>featurelist2=Triad_Feature_Extract(Mg,FOV,CatalogStar);          // создание списка возможных вариаций
+            Console.WriteLine("Время выполнения: " + DateTime.Now.Subtract(dateTime).ToString());
+
+            Console.Write("GetThreeStar_ID =>   \t\t");
+            List<StarID> starIDs=GetThreeStar_ID(CatalogStar,featurelist2,spotLists,eps);   // сравниваем
+            Console.WriteLine("Время выполнения: " + DateTime.Now.Subtract(dateTime).ToString());
+
+            Console.Write("IDAccuracy =>   \t\t");
+            List<Matrix> matrix=IDAccuracy(starIDs,sky,MRSS);                               // идентифицируем звёзды
+            Console.WriteLine("Время выполнения: " + DateTime.Now.Subtract(dateTime).ToString());
+            Console.WriteLine();
+
+            matrix = matrix.OrderByDescending(x => x.Voites).ToList();
+            Console.WriteLine();
+            PrintMatrix(matrix);
+
+            CalcalateRaDec(matrix, CatalogStar, ref Ra, ref Dec);
+
+            Console.WriteLine("\n\nRa:  {0,5}\n" +
+                              "Dec: {1,5}", Ra, Dec);
             Console.ReadKey();
+        }
+
+        public static void CalcalateRaDec(List<Matrix> matrices, List<Star> catalog, ref double Ra, ref double Dec)
+        {
+            int n=0;
+
+            for(int i = 0; i < matrices.Count; i++)
+
+                if(matrices[i].Voites != 0)
+                {
+                    n++;
+                    Ra += matrices[i].Voites * catalog.Where(x => x.Id == matrices[i].TrueH).ToList()[0].Ra;
+                    Dec += matrices[i].Voites * catalog.Where(x => x.Id == matrices[i].TrueH).ToList()[0].Dec;
+                }
+
+            Ra /= n;
+            Dec /= n;
+        }
+
+        public static void PrintMatrix(List<Matrix> matrix)
+        {
+            Console.WriteLine("|{0,5}|{1,4}|{2,5}|{3,7}|{4,27}|", "Votes", "Spot", "HipID", "TrueH", "XYZ");
+            for(int i = 0; i < matrix.Count; i++)
+                Console.WriteLine("|" +
+                    "{0,5}|" +
+                    "{1,4}|" +
+                    "{2,5}|" +
+                    "{3,7}|" +
+                    "{4,27}|",
+                    matrix[i].Voites,
+                    matrix[i].Spot,
+                    matrix[i].HipID,
+                    matrix[i].TrueH,
+                    matrix[i].XYZ.ToString());
+        }
+
+        public static List<Sky> ConvertToSky(List<Star> catalog)
+        {
+            List<Sky> skies=new List<Sky>();
+
+            for(int i = 0; i < catalog.Count; i++)
+                skies.Add(new Sky(catalog[i].Id, catalog[i].GetXYZ()));
+
+            return skies;
         }
 
         /// <summary>
@@ -306,7 +368,7 @@ namespace TreeStar
                         CatalogStar.Add((new Star(id, ra, dec, mgt)));
                 }
             }
-            Console.WriteLine("Каталог прочитан!");
+
             return CatalogStar;
         }
 
@@ -404,7 +466,6 @@ namespace TreeStar
                 feat.Add(new Triangles(Hip1, Hiparc2, Hiparc3, ang1, ang2, phi));
             }
 
-            Console.WriteLine("Треугольники сформированы");
             return feat;
         }
 
@@ -579,11 +640,11 @@ namespace TreeStar
                 for(int ll = 0; ll < fAng1.Count; ll++)
                 {
                     ind1.Add(fAng1[ll] <= high1 ? 1 : 0);
-                    ind1.Add(fAng1[ll] <= low1 ? 1 : 0);
-                    ind1.Add(fAng2[ll] <= high2 ? 1 : 0);
-                    ind1.Add(fAng2[ll] <= low2 ? 1 : 0);
-                    ind1.Add(fAng3[ll] <= high3 ? 1 : 0);
-                    ind1.Add(fAng3[ll] <= low3 ? 1 : 0);
+                    ind2.Add(fAng1[ll] <= low1 ? 1 : 0);
+                    ind3.Add(fAng2[ll] <= high2 ? 1 : 0);
+                    ind4.Add(fAng2[ll] <= low2 ? 1 : 0);
+                    ind5.Add(fAng3[ll] <= high3 ? 1 : 0);
+                    ind6.Add(fAng3[ll] <= low3 ? 1 : 0);
                 }
 
                 List<int> index=new List<int>();
@@ -695,15 +756,17 @@ namespace TreeStar
 
                     vote = votes.Max();
                     index = votes.IndexOf(vote);
+
+                    starID.Add(new StarID(votes.Max(), i, votes.IndexOf(vote), spotlist[i].XYZ));
                 }
                 else
                 {
                     vote = index = 0;
+                    starID.Add(new StarID(0, i, 0, spotlist[i].XYZ));
                 }
 
-                starID.Add(new StarID(vote, i, uhip[index], spotlist[i].XYZ));
+                //starID.Add(new StarID(vote, i, uhip[index], spotlist[i].XYZ));
             }
-            Console.WriteLine("Сравнение произведено!");
 
             return starID;
         }
@@ -733,9 +796,9 @@ namespace TreeStar
             {
                 for(int i = 0; i < starID.Count; i++)
                 {
-                    //if(starID[i].HipID == sky[i].HipID)
-                    //    stats.TrueID++;
-                    //else
+                    if(starID[i].HipID == sky[i].HipID)
+                        stats.TrueID++;
+                    else
                     {
                         if(starID[i].Votes > 0)
                             stats.FalseID++;
@@ -743,7 +806,7 @@ namespace TreeStar
                             stats.NeutralID++;
                     }
 
-                    //if(i == sky.Count - 1)
+                    if(i == sky.Count - 1)
                     {
                         if(stats.TrueID < MRSS || stats.FalseID > 0)
                             stats.NoSol = 100;
@@ -785,9 +848,8 @@ namespace TreeStar
             for(int i = 0; i < starID.Count; i++)
             {
                 matrix.Add(new Matrix(starID[i].Votes, starID[i].Spot, starID[i].HipID, sky[i].HipID, starID[i].XYZ));
+                //matrix.Add(new Matrix(starID[i].Votes, starID[i].Spot, starID[i].HipID, 0, starID[i].XYZ));
             }
-
-            Console.WriteLine("идентификация пройдена!");
 
             return matrix;
         }
@@ -816,7 +878,7 @@ namespace TreeStar
                     spotList.Add(new SpotList(index, new Vector3(x, y, z)));
                 }
             }
-            Console.WriteLine("Список звёзд для поиска прочитан!");
+
             return spotList;
         }
     }
