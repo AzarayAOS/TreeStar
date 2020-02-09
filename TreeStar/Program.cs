@@ -246,18 +246,18 @@ namespace TreeStar
         private static void Main(string[] args)
         {
             string FileCatalog="";      // путь к файлу каталога
-            string FileScreen="";       // путь к файлу с RA и DEC снимка
+            string FileScreen="star.csv";       // путь к файлу с RA и DEC снимка
             int MRSS=4;                 // Минимально необходимое количество звезд для решения
 
             Char separator = System.Globalization.CultureInfo.CurrentCulture.NumberFormat.CurrencyDecimalSeparator[0];
             double eps=Math.Pow(10,-3);     // погрешность
-            double Ra;
-            double Dec;
-            double Mg=6;
+            //double Ra;
+            //double Dec;
+            double Mg=7;
 
             double FOV=20;
 
-            List<SpotList> spotLists=new List<SpotList>();          // каталог звёзд, положение которых надо найти
+            List<SpotList> spotLists=GetSpotList(FileScreen,separator);          // каталог звёзд, положение которых надо найти
             List<Sky> sky=new List<Sky>();
             List<Star>CatalogStar= CreateCatalogTriad(Mg, FileCatalog, separator);      // загружаем каталог звёзд с определёнными зв.величинами
             List<Triangles>featurelist2=Triad_Feature_Extract(Mg,FOV,CatalogStar);      // создание списка возможных вариаций
@@ -272,7 +272,7 @@ namespace TreeStar
         public static List<Star> CreateCatalogTriad(double Mg, string datacatalog, Char separator)
         {
             List<Star> CatalogStar = new List<Star>();
-            CatalogStar.Add(new Star(-1, -1, -1, -1));  // заглушка, чтоб всё было с единицы
+            //CatalogStar.Add(new Star(-1, -1, -1, -1));  // заглушка, чтоб всё было с единицы
 
             using(StreamReader sr = new StreamReader(datacatalog, System.Text.Encoding.Default))
             {
@@ -722,9 +722,9 @@ namespace TreeStar
             {
                 for(int i = 0; i < starID.Count; i++)
                 {
-                    if(starID[i].HipID == sky[i].HipID)
-                        stats.TrueID++;
-                    else
+                    //if(starID[i].HipID == sky[i].HipID)
+                    //    stats.TrueID++;
+                    //else
                     {
                         if(starID[i].Votes > 0)
                             stats.FalseID++;
@@ -732,7 +732,7 @@ namespace TreeStar
                             stats.NeutralID++;
                     }
 
-                    if(i == sky.Count - 1)
+                    //if(i == sky.Count - 1)
                     {
                         if(stats.TrueID < MRSS || stats.FalseID > 0)
                             stats.NoSol = 100;
@@ -777,6 +777,34 @@ namespace TreeStar
             }
 
             return matrix;
+        }
+
+        public static List<SpotList> GetSpotList(string filedata, Char separator)
+        {
+            List<SpotList> spotList = new List<SpotList>();
+            //CatalogStar.Add(new Star(-1, -1, -1, -1));  // заглушка, чтоб всё было с единицы
+
+            using(StreamReader sr = new StreamReader(filedata, System.Text.Encoding.Default))
+            {
+                int index=0;
+                string line;
+                line = sr.ReadLine();
+                //int i = 0;
+                while((line = sr.ReadLine()) != null)
+                {
+                    string[] ch = line.Split(";");
+
+                    index++;
+
+                    float x = Convert.ToSingle(ch[0].Replace('.', separator));
+                    float y = Convert.ToSingle(ch[1].Replace('.', separator));
+                    float z = Convert.ToSingle(ch[2].Replace('.', separator));
+
+                    spotList.Add(new SpotList(index, new Vector3(x, y, z)));
+                }
+            }
+            Console.WriteLine("Каталог прочитан!");
+            return spotList;
         }
     }
 }
