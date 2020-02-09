@@ -259,17 +259,17 @@ namespace TreeStar
             DateTime dateTime=DateTime.Now;
 
             List<SpotList> spotLists=GetSpotList(FileScreen,separator);          // каталог звёзд, положение которых надо найти
-            Console.WriteLine("Время выполнения: " + dateTime.Subtract(DateTime.Now).ToString());
+            Console.WriteLine("Время выполнения: " + DateTime.Now.Subtract(dateTime).ToString());
             List<Sky> sky=new List<Sky>();
-            Console.WriteLine("Время выполнения: " + dateTime.Subtract(DateTime.Now).ToString());
+            Console.WriteLine("Время выполнения: " + DateTime.Now.Subtract(dateTime).ToString());
             List<Star>CatalogStar= CreateCatalogTriad(Mg, FileCatalog, separator);          // загружаем каталог звёзд с определёнными зв.величинами
-            Console.WriteLine("Время выполнения: " + dateTime.Subtract(DateTime.Now).ToString());
+            Console.WriteLine("Время выполнения: " + DateTime.Now.Subtract(dateTime).ToString());
             List<Triangles>featurelist2=Triad_Feature_Extract(Mg,FOV,CatalogStar);          // создание списка возможных вариаций
-            Console.WriteLine("Время выполнения: " + dateTime.Subtract(DateTime.Now).ToString());
+            Console.WriteLine("Время выполнения: " + DateTime.Now.Subtract(dateTime).ToString());
             List<StarID> starIDs=GetThreeStar_ID(CatalogStar,featurelist2,spotLists,eps);   // сравниваем
-            Console.WriteLine("Время выполнения: " + dateTime.Subtract(DateTime.Now).ToString());
+            Console.WriteLine("Время выполнения: " + DateTime.Now.Subtract(dateTime).ToString());
             List<Matrix> matrix=IDAccuracy(starIDs,sky,MRSS);                               // идентифицируем звёзды
-            Console.WriteLine("Время выполнения: " + dateTime.Subtract(DateTime.Now).ToString());
+            Console.WriteLine("Время выполнения: " + DateTime.Now.Subtract(dateTime).ToString());
 
             Console.WriteLine("Выполнение программы завершено!!!!!!!!!!!!!!!!!!!!!!!!!");
             Console.ReadKey();
