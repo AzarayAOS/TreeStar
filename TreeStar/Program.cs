@@ -245,7 +245,7 @@ namespace TreeStar
 
         private static void Main(string[] args)
         {
-            string FileCatalog="";      // путь к файлу каталога
+            string FileCatalog="valuesID.csv";      // путь к файлу каталога
             string FileScreen="star.csv";       // путь к файлу с RA и DEC снимка
             int MRSS=4;                 // Минимально необходимое количество звезд для решения
 
@@ -339,7 +339,7 @@ namespace TreeStar
 
             double ang1,ang2;
 
-            for(int j = 0; j <= catalog.Count; j++)
+            for(int j = 0; j < catalog.Count; j++)
             {
                 A = catalog[j].GetXYZ();    // Желаемый вектор для сравнения
                 B = C = Vector3.Zero;
@@ -349,7 +349,7 @@ namespace TreeStar
 
                 theta1 = theta2 = 360;
 
-                for(int i = 0; i <= catalog.Count; i++)
+                for(int i = 0; i < catalog.Count; i++)
                 {
                     //Получить 2й вектор
                     NewXYZ = catalog[i].GetXYZ();
@@ -450,7 +450,7 @@ namespace TreeStar
 
             double ang1,ang2;
 
-            for(int j = 0; j <= spotlist.Count; j++)
+            for(int j = 0; j < spotlist.Count; j++)
             {
                 A = spotlist[j].XYZ;
                 B = C = Vector3.Zero;
@@ -460,7 +460,7 @@ namespace TreeStar
 
                 theta1 = theta2 = 360;
 
-                for(int i = 0; i <= spotlist.Count; i++)
+                for(int i = 0; i < spotlist.Count; i++)
                 {
                     New = spotlist[i].XYZ;
                     if(!New.Equals(A))
