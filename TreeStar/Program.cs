@@ -245,15 +245,21 @@ namespace TreeStar
 
         private static void Main(string[] args)
         {
+            #region Входные данные из вне программы
+
             string FileCatalog="valuesID.csv";      // путь к файлу каталога
             string FileScreen="star.csv";       // путь к файлу с RA и DEC снимка
+
+            #endregion Входные данные из вне программы
+
             int MRSS=5;                 // Минимально необходимое количество звезд для решения
+
+            double Mg=7;
 
             Char separator = System.Globalization.CultureInfo.CurrentCulture.NumberFormat.CurrencyDecimalSeparator[0];
             double eps=Math.Pow(10,-4);     // погрешность
             double Ra=0;
             double Dec=0;
-            double Mg=7;
 
             double FOV=20;
             DateTime dateTime=DateTime.Now;
@@ -293,6 +299,9 @@ namespace TreeStar
             Console.ReadKey();
         }
 
+        /// <summary>
+        /// Из всех найденных звёзд вычисляется среднее положение каждой звезды, учитывая голосование
+        /// </summary>
         public static void CalcalateRaDec(List<Matrix> matrices, List<Star> catalog, ref double Ra, ref double Dec)
         {
             int n=0;
@@ -302,6 +311,10 @@ namespace TreeStar
                 if(matrices[i].Voites != 0)
                 {
                     n++;
+
+                    //Ra += /*matrices[i].Voites **/ catalog.Where(x => x.Id == matrices[i].TrueH).ToList()[0].Ra;
+                    //Dec += /*matrices[i].Voites **/ catalog.Where(x => x.Id == matrices[i].TrueH).ToList()[0].Dec;
+
                     Ra += matrices[i].Voites * catalog.Where(x => x.Id == matrices[i].TrueH).ToList()[0].Ra;
                     Dec += matrices[i].Voites * catalog.Where(x => x.Id == matrices[i].TrueH).ToList()[0].Dec;
                 }
@@ -604,24 +617,6 @@ namespace TreeStar
 
                 #region аналог булевских операций из матлаба с массивами
 
-                //fAng1 = [featurelist.feat.theta1];
-                //fAng2 = [featurelist.feat.theta2];
-                //fAng3 = [featurelist.feat.phi];
-                //for i = 1:N
-
-                // high1 = pattern(i).theta1 + ecat;
-                // low1 = pattern(i).theta1 - ecat;
-                // high2 = pattern(i).theta2 + ecat;
-                //low2 = pattern(i).theta2 - ecat;
-                //high3 = pattern(i).phi + ecat;
-                //low3 = pattern(i).phi - ecat;
-                //ind1 = fAng1 <= high1;
-                //ind2 = fAng1 >= low1;
-                //ind3 = fAng2 <= high2;
-                //ind4 = fAng2 >= low2;
-                //ind5 = fAng3 <= high3;
-                //ind6 = fAng3 >= low3;
-
                 // по идее массивы должны быть булевские, но с int потом легче работать
                 List<int>ind1=new List<int>();
                 List<int>ind2=new List<int>();
@@ -629,13 +624,6 @@ namespace TreeStar
                 List<int>ind4=new List<int>();
                 List<int>ind5=new List<int>();
                 List<int>ind6=new List<int>();
-
-                //ind1.Add(0);
-                //ind2.Add(0);
-                //ind3.Add(0);
-                //ind4.Add(0);
-                //ind5.Add(0);
-                //ind6.Add(0);
 
                 for(int ll = 0; ll < fAng1.Count; ll++)
                 {
@@ -686,14 +674,6 @@ namespace TreeStar
             List<int> ms2=new List<int>();
             List<int> ms3=new List<int>();
 
-            //ps1.Add(0);
-            //ps2.Add(0);
-            //ps3.Add(0);
-
-            //ms1.Add(0);
-            //ms2.Add(0);
-            //ms3.Add(0);
-
             for(int i = 0; i < pattern.Count; i++)
             {
                 ps1.Add(pattern[i].Spot1);
@@ -714,10 +694,6 @@ namespace TreeStar
                 List<int>hip2=new List<int>();
                 List<int>hip3=new List<int>();
                 List<int>hip=new List<int>();
-
-                //hip1.Add(-1);
-                //hip2.Add(-1);
-                //hip3.Add(-1);
 
                 for(int j = 0; j < ms1.Count; j++)
                 {
