@@ -247,7 +247,8 @@ namespace TreeStar
         {
             #region Входные данные из вне программы
 
-            string FileCatalog="valuesID.csv";      // путь к файлу каталога
+            //string FileCatalog="valuesID.csv";      // путь к файлу каталога
+            string FileCatalog="asu_hipparcos_catalog_ra_dec_deg_wo_header.txt";
             string FileScreen="star.csv";       // путь к файлу с RA и DEC снимка
 
             #endregion Входные данные из вне программы
@@ -257,7 +258,7 @@ namespace TreeStar
             double Mg=7;
             Stats stats=new Stats();
             Char separator = System.Globalization.CultureInfo.CurrentCulture.NumberFormat.CurrencyDecimalSeparator[0];
-            double eps=Math.Pow(10,-4);     // погрешность
+            double eps=Math.Pow(10,-1);     // погрешность
             double Ra=0;
             double Dec=0;
 
@@ -299,7 +300,26 @@ namespace TreeStar
 
             Console.WriteLine();
             PrintStatisica(stats);
+
+            starIDs = starIDs.OrderByDescending(x => x.Votes).ToList();
+            Console.WriteLine();
+            PrintStarID(starIDs);
             Console.ReadKey();
+        }
+
+        public static void PrintStarID(List<StarID> starIDs)
+        {
+            Console.WriteLine("|{0,4}|{1,5}|{2,5}|{3,27}|", "Spot", "Votes", "HipID", "XYZ");
+            for(int i = 0; i < starIDs.Count; i++)
+                Console.WriteLine("|" +
+                    "{0,4}|" +
+                    "{1,5}|" +
+                    "{2,5}|" +
+                    "{3,27}|",
+                   starIDs[i].Spot,
+                   starIDs[i].Votes,
+                   starIDs[i].HipID,
+                   starIDs[i].XYZ.ToString());
         }
 
         /// <summary>
@@ -315,8 +335,8 @@ namespace TreeStar
                 {
                     n++;
 
-                    //Ra += /*matrices[i].Voites **/ catalog.Where(x => x.Id == matrices[i].TrueH).ToList()[0].Ra;
-                    //Dec += /*matrices[i].Voites **/ catalog.Where(x => x.Id == matrices[i].TrueH).ToList()[0].Dec;
+                    //Ra += catalog.Where(x => x.Id == matrices[i].TrueH).ToList()[0].Ra;
+                    //Dec += catalog.Where(x => x.Id == matrices[i].TrueH).ToList()[0].Dec;
 
                     Ra += matrices[i].Voites * catalog.Where(x => x.Id == matrices[i].TrueH).ToList()[0].Ra;
                     Dec += matrices[i].Voites * catalog.Where(x => x.Id == matrices[i].TrueH).ToList()[0].Dec;
@@ -391,14 +411,16 @@ namespace TreeStar
                 while((line = sr.ReadLine()) != null)
                 {
                     string[] ch = line.Split(";");
+                    if(ch[0] != "" & ch[1] != "" & ch[2] != "" & ch[3] != "")
+                    {
+                        int id = Convert.ToInt32(ch[0]);
+                        float ra = Convert.ToSingle(ch[2].Replace('.', separator));
+                        float dec = Convert.ToSingle(ch[3].Replace('.', separator));
+                        float mgt = Convert.ToSingle(ch[1].Replace('.', separator));
 
-                    int id = Convert.ToInt32(ch[0]);
-                    float ra = Convert.ToSingle(ch[1].Replace('.', separator));
-                    float dec = Convert.ToSingle(ch[2].Replace('.', separator));
-                    float mgt = Convert.ToSingle(ch[3].Replace('.', separator));
-
-                    if(mgt <= Mg)
-                        CatalogStar.Add((new Star(id, ra, dec, mgt)));
+                        if(mgt <= Mg)
+                            CatalogStar.Add((new Star(id, ra, dec, mgt)));
+                    }
                 }
             }
 
