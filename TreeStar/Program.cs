@@ -251,6 +251,8 @@ namespace TreeStar
             string FileCatalog="asu_hipparcos_catalog_ra_dec_deg_wo_header.txt";
             string FileScreen="star.csv";       // путь к файлу с RA и DEC снимка
 
+            string FileTriadStarMap="TriadStar_M7_F20.csv";
+
             #endregion Входные данные из вне программы
 
             int MRSS=5;                 // Минимально необходимое количество звезд для решения
@@ -258,7 +260,7 @@ namespace TreeStar
             double Mg=7;
             Stats stats=new Stats();
             Char separator = System.Globalization.CultureInfo.CurrentCulture.NumberFormat.CurrencyDecimalSeparator[0];
-            double eps=Math.Pow(10,-1);     // погрешность
+            double eps=Math.Pow(10,-3);     // погрешность
             double Ra=0;
             double Dec=0;
 
@@ -277,7 +279,10 @@ namespace TreeStar
             Console.WriteLine("Время выполнения: " + DateTime.Now.Subtract(dateTime).ToString());
 
             Console.Write("Triad_Feature_Extract =>   \t");
-            List<Triangles>featurelist2=Triad_Feature_Extract(Mg,FOV,CatalogStar);          // создание списка возможных вариаций
+            //List<Triangles>featurelist2=Triad_Feature_Extract(Mg,FOV,CatalogStar);          // создание списка возможных вариаций
+
+            List<Triangles>featurelist2=ReadTriadStar(FileTriadStarMap,separator);          // загрузка списка возможных вариаций
+
             Console.WriteLine("Время выполнения: " + DateTime.Now.Subtract(dateTime).ToString());
 
             Console.Write("GetThreeStar_ID =>   \t\t");
@@ -305,6 +310,35 @@ namespace TreeStar
             Console.WriteLine();
             PrintStarID(starIDs);
             Console.ReadKey();
+        }
+
+        public static List<Triangles> ReadTriadStar(string FileNamem, Char separator)
+        {
+            List<Triangles> feat=new List<Triangles>();
+            using(StreamReader sr = new StreamReader(FileNamem, System.Text.Encoding.Default))
+            {
+                string line;
+                line = sr.ReadLine();
+                char[] spl={',','[',']','"'};
+
+                while((line = sr.ReadLine()) != null)
+                {
+                    string[] ch = line.Split(spl);
+
+                    int HipID1=Convert.ToInt32(ch[1]);
+                    int HipID2=Convert.ToInt32(ch[2]);
+                    int HipID3=Convert.ToInt32(ch[3]);
+
+                    double theta1=Convert.ToDouble(ch[4].Replace('.', separator));
+                    double theta2=Convert.ToDouble(ch[5].Replace('.', separator));
+
+                    double phi=Convert.ToDouble(ch[6].Replace('.', separator));
+
+                    feat.Add(new Triangles(HipID1, HipID2, HipID3, theta1, theta2, phi));
+                }
+            }
+
+            return feat;
         }
 
         public static void PrintStarID(List<StarID> starIDs)
@@ -455,6 +489,7 @@ namespace TreeStar
             double phi;
 
             double ang1,ang2;
+            int tempindex=0;
 
             for(int j = 0; j < catalog.Count; j++)
             {
@@ -517,7 +552,7 @@ namespace TreeStar
                     Hiparc2 = Hip2;
                     Hiparc3 = Hip3;
                 }
-
+                tempindex++;
                 feat.Add(new Triangles(Hip1, Hiparc2, Hiparc3, ang1, ang2, phi));
             }
 
@@ -675,11 +710,11 @@ namespace TreeStar
                 for(int ll = 0; ll < fAng1.Count; ll++)
                 {
                     ind1.Add(fAng1[ll] <= high1 ? 1 : 0);
-                    ind2.Add(fAng1[ll] <= low1 ? 1 : 0);
+                    ind2.Add(fAng1[ll] >= low1 ? 1 : 0);
                     ind3.Add(fAng2[ll] <= high2 ? 1 : 0);
-                    ind4.Add(fAng2[ll] <= low2 ? 1 : 0);
+                    ind4.Add(fAng2[ll] >= low2 ? 1 : 0);
                     ind5.Add(fAng3[ll] <= high3 ? 1 : 0);
-                    ind6.Add(fAng3[ll] <= low3 ? 1 : 0);
+                    ind6.Add(fAng3[ll] >= low3 ? 1 : 0);
                 }
 
                 List<int> index=new List<int>();
@@ -687,14 +722,14 @@ namespace TreeStar
 
                 for(int ll = 0; ll < ind1.Count; ll++)
                 {
-                    index.Add((ind1[ll] + ind2[ll] + ind3[ll] + ind4[ll] + ind5[ll] + ind5[ll]) == 0 ? 0 : 1);
+                    index.Add((ind1[ll] + ind2[ll] + ind3[ll] + ind4[ll] + ind5[ll] + ind5[ll]) == 6 ? 1 : 0);
                 }
 
                 #endregion аналог булевских операций из матлаба с массивами
 
                 if(index.Sum() == 0)
                 {
-                    match.Add(new Pattern(-1, -1, -1, -1, -1, -1));
+                    match.Add(new Pattern(0, 0, 0, 0, 0, 0));
                 }
                 else
                 {
